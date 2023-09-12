@@ -46,14 +46,19 @@ def CosineMatching(cv_text,jd_text):
     return round(matchper,2)
 
 
-def Matching():
-    job_id = request.form['job_id']
+def Matching(user_id,job_id):
+    print("Matching Started...")
     jd_data = JOBS.find_one({"_id":ObjectId(job_id)},{"FileData":1})["FileData"]
-    with io.BytesIO(jd_data) as data:
-        doc = fitz.open(stream=data)
-        text_of_jd = " "
-        for page in doc:
-            text_of_jd = text_of_jd + str(page.get_text())
+    # Check if jd_data is binary (PDF or DOCX)
+    if isinstance(jd_data, bytes):
+        with io.BytesIO(jd_data) as data:
+            doc = fitz.open(stream=data)
+            text_of_jd = " "
+            for page in doc:
+                text_of_jd = text_of_jd + str(page.get_text())
+    else:
+        # If jd_data is a string (plain text), assign it directly
+        text_of_jd = jd_data
 
 
     label_list_jd=[]
@@ -78,10 +83,10 @@ def Matching():
     print("Jd dictionary:",dic_jd)
 
 
-    resume_jobpost = resumeFetchedData.find_one({"UserId": ObjectId(session['user_id'])}, {"JOB POST": 1})["JOB POST"]
+    resume_jobpost = resumeFetchedData.find_one({"_id": ObjectId(user_id)}, {"JOB POST": 1})["JOB POST"]
     print("resume_jobpost: ",resume_jobpost)
 
-    resume_experience_list = resumeFetchedData.find_one({"UserId": ObjectId(session['user_id'])}, {"EXPERIENCE": 1})["EXPERIENCE"]
+    resume_experience_list = resumeFetchedData.find_one({"_id": ObjectId(user_id)}, {"EXPERIENCE": 1})["EXPERIENCE"]
     print("resume_experience: ",resume_experience_list)
     # resume_experience = []
     # for p in resume_experience_list:
@@ -97,16 +102,16 @@ def Matching():
 
     # print("resume_experience: ",resume_experience)
 
-    resume_skills = resumeFetchedData.find_one({"UserId": ObjectId(session['user_id'])}, {"SKILLS": 1})["SKILLS"]
+    resume_skills = resumeFetchedData.find_one({"_id": ObjectId(user_id)}, {"SKILLS": 1})["SKILLS"]
     print("resume_skills: ",resume_skills)
 
-    resume_education = resumeFetchedData.find_one({"UserId": ObjectId(session['user_id'])}, {"EDUCATION": 1})["EDUCATION"]
+    resume_education = resumeFetchedData.find_one({"_id": ObjectId(user_id)}, {"EDUCATION": 1})["EDUCATION"]
     print("resume_education: ",resume_education)
 
-    resume_certification = resumeFetchedData.find_one({"UserId": ObjectId(session['user_id'])}, {"CERTIFICATION": 1})["CERTIFICATION"]
+    resume_certification = resumeFetchedData.find_one({"_id": ObjectId(user_id)}, {"CERTIFICATION": 1})["CERTIFICATION"]
     print("resume_certification: ",resume_certification)
 
-    resume_text_only = resumeFetchedData.find_one({"UserId": ObjectId(session['user_id'])}, {"ResumeData": 1})["ResumeData"]
+    resume_text_only = resumeFetchedData.find_one({"_id": ObjectId(user_id)}, {"ResumeData": 1})["ResumeData"]
     # print("resume_text_only: ",resume_text_only)
     # print("jd_text_only: ",text_of_jd)
 
@@ -160,12 +165,12 @@ def Matching():
         job_description_jobpost_text = job_description_jobpost_text.strip()
         resume_jobpost_text = resume_jobpost_text.strip()
         cos_jobpost_matching = CosineMatching(resume_jobpost_text,job_description_jobpost_text)
-        cos_jobpost_matching = cos_jobpost_matching *0.2
+        cos_jobpost_matching = cos_jobpost_matching *0.5
     
-        # for i, item in enumerate(resume_jobpost):
-        #     if item in jd_post:
-        #         result = True
-        #         match_index = i
+        for i, item in enumerate(resume_jobpost):
+            if item in jd_post:
+                result = True
+                match_index = i
         #         ########   compare resume_experience and jd_experience
         #         if resume_experience:
         #             experience_difference = (jd_experience[0] - resume_experience[match_index])
@@ -180,15 +185,15 @@ def Matching():
         #                 experience_similarity = 0
                 
         #             break
-        #     else:
-        #         result = False
+            else:
+                result = False
                 
-        # if result == True:
-        #     jdpost_similarity = 1
-        # else:
-        #     jdpost_similarity = 0
+        if result == True:
+            jdpost_similarity = 1
+        else:
+            jdpost_similarity = 0
 
-    jdpost_similarity = jdpost_similarity * 0.3
+    jdpost_similarity = jdpost_similarity * 0.5
     jdpost_similarity += cos_jobpost_matching
     # print("jd_post_simiarity: ", jdpost_similarity)
     experience_similarity = experience_similarity * 0.2

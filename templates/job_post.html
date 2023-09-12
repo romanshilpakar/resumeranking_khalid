@@ -1,9 +1,4 @@
-{% extends "base.html" %} {% block title %}Job POST{% endblock %} {% block
-  Addnav %}
-  <li class="nav-item active">
-    <a class="nav-link" href="/HR_Homepage">HR Homepage</a>
-  </li>
-  {% endblock %}
+{% extends "base.html" %} {% block title %}Job POST{% endblock %}
 
 {% block
 content %}
@@ -37,19 +32,19 @@ content %}
             >
               <div class="card-body">
                 <h5 class="card-title text-center">
-                  {{data[i]['Job_Profile']}}<span
+                  {{data[i]['Job_Post']}}<span
                     class="badge rounded-pill bg-warning text-dark"
                     >New</span
                   >
                 </h5>
                 <p class="card-text text-center">
-                  <strong>Company:</strong>{{data[i]['CompanyName']}}
+                  <strong>Department:</strong>{{data[i]['Department']}}
                 </p>
-                <p class="card-text text-center">
+                <!-- <p class="card-text text-center">
                   <strong>{{ data[i]['Salary'] }}</strong>
-                </p>
+                </p> -->
                 <p class="card-text text-center">
-                  <small class="text-muted">{{data[i]['LastDate']}}</small>
+                  <small class="text-muted">{{data[i]['DemandDate']}}</small>
                 </p>
                 <p>
                   <button
@@ -107,7 +102,7 @@ content %}
                     name="company"
                     required
                   />
-                  <label for="companyInput">Company:</label>
+                  <label for="companyInput">Department:</label>
                 </div>
                 <div class="form-floating mb-3">
                   <input
@@ -118,18 +113,8 @@ content %}
                     name="jp"
                     required
                   />
-                  <label for="jbInput">Job Profile:</label>
+                  <label for="jbInput">Job Post:</label>
                 </div>
-                <div class="form-floating mb-3">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="SalaryInput"
-                    placeholder="Enter Package in Rs."
-                    name="salary"
-                    required
-                  />
-                  <label for="SalaryInput">Salary:</label>
                 </div>
                 <div class="form-floating mb-3">
                   <input
@@ -140,7 +125,7 @@ content %}
                     name="last_date"
                     required
                   />
-                  <label for="LastDateInput">Last Date:</label>
+                  <label for="LastDateInput">Demand Date:</label>
                 </div>
                 <div class="form-group mb-3">
                   <label for="jd">Upload Job Description:</label>
@@ -149,6 +134,19 @@ content %}
                     class="form-control"
                     id="jd"
                     name="jd"
+                    accept=".pdf, .docx, .txt"
+                    required
+                  />
+                </div>
+                <div class="form-group mb-3">
+                  <label for="resume">Upload Resumes:</label>
+                  <input
+                    type="file"
+                    class="form-control"
+                    id="resume"
+                    name="resume"
+                    accept=".pdf, .docx"
+                    multiple
                     required
                   />
                 </div>
@@ -193,7 +191,7 @@ content %}
                 <thead>
                   <tr>
                     <th class="text-center">No.</th>
-                    <th class="text-center">Name</th>
+                    <th class="text-center">File Name</th>
                     <th class="text-center">Matching %</th>
                   </tr>
                 </thead>
@@ -226,7 +224,7 @@ content %}
               "<tr><td class='text-center'>" +
               (i + 1) +
               "</td><td class='text-center'>" +
-              data[i + 2]["Name"] +
+              data[i + 2]["resume_title"] +
               "</td><td class='text-center'>" +
               data[i + 2]["Match"] +
               "</td></tr>";
@@ -239,20 +237,7 @@ content %}
       },
     });
   });
-  
-$(document).on("click", ".send_email_top5", function () {
-  alert("Are you sure want to send Emails");
-  $.ajax({
-    url: "/HR1/send_email_top5",
-    method: "POST",
-    success: function (data) {
-      alert("Email sent successfully!");
-    },
-    error: function (jqXHR, textStatus, errorThrown) {
-      alert("Error sending email: " + errorThrown);
-    },
-  });
-});
+
   
 </script>
 {% endblock %}
