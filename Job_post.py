@@ -45,11 +45,23 @@ def extractData(file,ext):
 def resume_extraction(filename,jd_id):
     fname = "static/uploaded_resumes/"+filename
     print(fname)
-    doc = fitz.open(fname)
-    print("Resume taken as input")
+    file_extension = os.path.splitext(fname)[1].lower()
     text_of_resume = " "
-    for page in doc:
-        text_of_resume = text_of_resume + str(page.get_text())
+    if file_extension == '.pdf':
+        # Use PyMuPDF (fitz) for PDF files
+        doc = fitz.open(fname)
+        print("Resume taken as input from PDF")
+        for page in doc:
+            text_of_resume += str(page.get_text())
+    elif file_extension == '.docx':
+         # Use docx2txt for DOCX files
+        text_of_resume = docx2txt.process(fname)
+        print("Resume taken as input from DOCX")
+    else:
+        # Handle unsupported file types here
+        print("Unsupported file type")
+        return
+
     label_list=[]
     text_list = []
     dic = {}
@@ -168,12 +180,6 @@ def ADD_JOB():
             result = None     
             result = JOBS.insert_one({"_id":jd_id,"Job_Post":job_post,"Job_Description":fetchedData,"Department":department,"DemandDate":last_date,"CreatedAt":datetime.now(),"Job_description_file_name":filename,})
 
-            # with open(os.path.join(jd_folder, filename), "rb") as f:
-            #     jd_data = f.read()
-
-            # JOBS.update_one({"_id": jd_id}, {"$set": {"FileData": jd_data}})
-            # print("JD added to Database")
-            # Conditionally update FileData based on file type
             jd_data = None
             if ext in ["pdf", "docx"]:
                 with open(os.path.join(jd_folder, filename), "rb") as f:
