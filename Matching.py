@@ -22,7 +22,9 @@ JOBS = mongo.db.JOBS
 
 ###Spacy model
 print("Loading Jd Parser model...")
-jd_model = spacy.load('assets/JdModel/output/model-best')
+# jd_model = spacy.load('assets/JdModel/output/model-best')
+jd_model = spacy.load('https://d39xhax0ozcax9.cloudfront.net/ResumeRanking/models/JdModel/output/model-best')
+
 print("Jd Parser model loaded")
 
 
@@ -155,6 +157,7 @@ def Matching(user_id,job_id):
                     
             if result == True:
                 jdpost_similarity = 1
+                cos_jobpost_matching = 0
             else:
                 jdpost_similarity = 0
 
