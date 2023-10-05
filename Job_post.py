@@ -6,13 +6,9 @@ from database import mongo
 from datetime import datetime
 from Matching import Matching
 
-
-
 job_post = Blueprint("Job_post", __name__, static_folder="static", template_folder="templates")
-
 jd_folder = "static/uploaded_jd/"
 resume_folder = "static/uploaded_resumes/"
-
 JOBS = mongo.db.JOBS
 Applied_EMP = mongo.db.Applied_EMP
 resumeFetchedData = mongo.db.resumeFetchedData
@@ -20,7 +16,7 @@ IRS_USERS = mongo.db.IRS_USERS
 
 ###Spacy model
 print("Loading Resume Parser model...")
-nlp = spacy.load('assets/ResumeModel/output/model-best')
+nlp = spacy.load('assets/model_cv/model-best')
 print("Resume Parser model loaded")
 
 def allowedExtension(filename):
@@ -99,39 +95,19 @@ def resume_extraction(filename,jd_id):
         value_skills = None
 
 
-    resume_jobpost = dic.get('JOB POST')
+    resume_jobpost = dic.get('JOBPOST')
     if resume_jobpost is not None:
         value_jobpost = resume_jobpost
     else:
         value_jobpost = None
 
-    resume_experience = dic.get('EXPERIENCE')
+    resume_experience = dic.get('EDUEXP')
     if resume_experience is not None:
         value_experience = resume_experience
     else:
         value_experience = None
 
-    resume_education = dic.get('EDUCATION')
-    if resume_education is not None:
-        value_education = resume_education
-    else:
-        value_education=None
-
-    resume_certification = dic.get('CERTIFICATION')
-    if resume_certification is not None:
-        value_certification = resume_certification
-    else:
-        value_certification=None
-
-    resume_location = dic.get('LOCATION')
-    if resume_location is not None:
-        value_location = resume_location
-    else:
-        value_location = None
-
-
-    result = None
-    result = resumeFetchedData.insert_one({"NAME":value_name,"JOB POST":value_jobpost,"SKILLS": value_skills,"CERTIFICATION": value_certification,"EXPERIENCE":value_experience,"EDUCATION":value_education,"LOCATION":value_location,"ResumeTitle":filename,"ResumeAnnotatedData":resume_data_annotated,"ResumeData":text_of_resume,"jd_id":jd_id})                
+    resumeFetchedData.insert_one({"NAME":value_name,"JOBPOST":value_jobpost,"SKILLS": value_skills,"EXPERIENCE":value_experience,"ResumeTitle":filename,"ResumeAnnotatedData":resume_data_annotated,"ResumeData":text_of_resume,"jd_id":jd_id})                
 pass
 
 def resume_jd_matching(user_id, job_id):

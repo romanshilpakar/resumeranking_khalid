@@ -1,5 +1,4 @@
 import spacy, fitz,io
-from flask import  session,request
 from database import mongo
 from bson.objectid import ObjectId
 from MediaWiki import get_search_results
@@ -14,30 +13,23 @@ nltk.download("stopwords")
 stop_words = set(stopwords.words("english"))
 punctuation = string.punctuation
 
-
-
 resumeFetchedData = mongo.db.resumeFetchedData
 JOBS = mongo.db.JOBS
 
 
 ###Spacy model
 print("Loading Jd Parser model...")
-# jd_model = spacy.load('assets/JdModel/output/model-best')
-jd_model = spacy.load('https://d39xhax0ozcax9.cloudfront.net/ResumeRanking/models/JdModel/output/model-best')
-
+jd_model = spacy.load('assets/model_jd/model-best')
 print("Jd Parser model loaded")
 
 
 def clean_text(text):
     # Tokenize the text into words
     words = nltk.word_tokenize(text)
-
     # Remove stopwords and punctuation
     filtered_words = [word.lower() for word in words if word.lower() not in stop_words and word not in punctuation]
-
     # Join the filtered words into a single string
     cleaned_text = " ".join(filtered_words)
-
     return cleaned_text
 
 def CosineMatching(cv_text,jd_text):
@@ -85,7 +77,7 @@ def Matching(user_id,job_id):
     print("Jd dictionary:",dic_jd)
     print("Extracting from resume....")
 
-    resume_jobpost = resumeFetchedData.find_one({"_id": ObjectId(user_id)}, {"JOB POST": 1})["JOB POST"]
+    resume_jobpost = resumeFetchedData.find_one({"_id": ObjectId(user_id)}, {"JOBPOST": 1})["JOBPOST"]
     print("resume_jobpost: ",resume_jobpost)
 
     resume_experience_list = resumeFetchedData.find_one({"_id": ObjectId(user_id)}, {"EXPERIENCE": 1})["EXPERIENCE"]
@@ -94,12 +86,6 @@ def Matching(user_id,job_id):
     resume_skills = resumeFetchedData.find_one({"_id": ObjectId(user_id)}, {"SKILLS": 1})["SKILLS"]
     print("resume_skills: ",resume_skills)
 
-    resume_education = resumeFetchedData.find_one({"_id": ObjectId(user_id)}, {"EDUCATION": 1})["EDUCATION"]
-    print("resume_education: ",resume_education)
-
-    resume_certification = resumeFetchedData.find_one({"_id": ObjectId(user_id)}, {"CERTIFICATION": 1})["CERTIFICATION"]
-    print("resume_certification: ",resume_certification)
-
     resume_text_only = resumeFetchedData.find_one({"_id": ObjectId(user_id)}, {"ResumeData": 1})["ResumeData"]
     print("Extraction completed from resume")
 
@@ -107,31 +93,25 @@ def Matching(user_id,job_id):
     ####################################
     print("Extracting from JD....")
 
-
     job_description_skills = dic_jd.get('SKILLS')
     print("job_description_skills: ",job_description_skills)
 
-    job_description_education = dic_jd.get('EDUCATION')
-    print("job_description_education: ",job_description_education)
-
-    jd_experience_list = dic_jd.get('EXPERIENCE')
+    jd_experience_list = dic_jd.get('EDUEXP')
     print("jd_experience_list: ",jd_experience_list)
 
-    jd_post = dic_jd.get('JOB POST')
+    jd_post = dic_jd.get('JOBPOST')
     print("jd_post: ",jd_post)
 
     print("Extraction completed from JD")
 
-
     #############################################
-    #########  Compare resume_jobpost and jd_post
+    #########  Compare resume_jobpost and jd_post (10%)
     print("Comparing resume_jobpost and jd_post")
-    experience_similarity = 0
     jdpost_similarity = 0
     cos_jobpost_matching=0
     if jd_post and resume_jobpost:
         jd_post = [item.lower() for item in jd_post]
-        match_index = -1
+
         job_description_jobpost_text = ""
         resume_jobpost_text = ""
         if resume_jobpost:
@@ -145,180 +125,118 @@ def Matching(user_id,job_id):
             job_description_jobpost_text = job_description_jobpost_text.strip()
             resume_jobpost_text = resume_jobpost_text.strip()
             cos_jobpost_matching = CosineMatching(resume_jobpost_text,job_description_jobpost_text)
-            cos_jobpost_matching = cos_jobpost_matching *0.5
+            cos_jobpost_matching = cos_jobpost_matching *0.1
     
             for i, item in enumerate(resume_jobpost):
                 if item in jd_post:
-                    result = True
-                    match_index = i
-       
+                    result = True       
                 else:
-                    result = False
-                    
+                    result = False                  
             if result == True:
-                jdpost_similarity = 1
+                jdpost_similarity = 0.1
                 cos_jobpost_matching = 0
             else:
-                jdpost_similarity = 0
-
-        jdpost_similarity = jdpost_similarity * 0.5
-        jdpost_similarity += cos_jobpost_matching
-        # print("jd_post_simiarity: ", jdpost_similarity)
-        experience_similarity = experience_similarity * 0.2
-        # print("Experiece Similarity: ", experience_similarity)
+                jdpost_similarity = cos_jobpost_matching
     else:
-        jdpost_similarity =0
-        experience_similarity=0
+        jdpost_similarity = 0
+    print("jd_post_simiarity:", jdpost_similarity)
     print("Completed Comparing resume_jobpost and jd_post")
 
 
-    ########   compare resume_skills and jd_skills
+    ########   compare resume_skills and jd_skills (30%)
     print("Comparing resume_skills and jd_skills")
-    skills_similarity = 0
     overall_skills_similarity= 0
     cos_skills_matching = 0
 
     if resume_skills and job_description_skills:
         new_resume_skills = []
-        count = 0
         job_description_skills_text = ""
         resume_skills_text = ""
+        resume_skills_text2 = ""
 
         if resume_skills:
             for skills in resume_skills: 
                 cleaned_item = clean_text(skills)
                 resume_skills_text += cleaned_item + " "  
-                search_query = f"{skills} in technology "
+                search_query = f"{skills}"
                 results = get_search_results(search_query)
                 if results:
                     new_resume_skills.append(results) 
                 else:
                     print("No matching articles found")
+                for new_skills in new_resume_skills:
+                    cleaned_item = clean_text(new_skills)
+                    resume_skills_text2 += cleaned_item + " " 
 
         if job_description_skills:
             for skill in job_description_skills:
                 cleaned_item = clean_text(skill)
                 job_description_skills_text += cleaned_item + " "
-                for resume_skill in new_resume_skills:
-                    if skill in resume_skill:
-                        count += 1
-                        break
 
-            skills_similarity = 1 - ((len(job_description_skills) - count)/ len(job_description_skills))
-            # print("skills_similarity_jacard:",skills_similarity)
-            skills_similarity = skills_similarity * 0.6
-            # overall_skills_similarity += skills_similarity
             job_description_skills_text = job_description_skills_text.strip()
             resume_skills_text = resume_skills_text.strip()
-            cos_skills_matching = CosineMatching(resume_skills_text,job_description_skills_text)
-            # print("skills_similarity_consile:",cos_skills_matching)
+            cos_skills_matching1 = CosineMatching(resume_skills_text,job_description_skills_text)
+            cos_skills_matching2 = CosineMatching(resume_skills_text2,job_description_skills_text)
+            cos_skills_matching = cos_skills_matching1 + cos_skills_matching2
             cos_skills_matching = cos_skills_matching * 0.3
-            overall_skills_similarity = overall_skills_similarity + skills_similarity +cos_skills_matching
-            # print("SKills Matched:",overall_skills_similarity)
-
+            overall_skills_similarity += cos_skills_matching
         else:
-            skills_similarity = 0
-            # print("Skills Matched", skills_similarity)
+            overall_skills_similarity = 0
     else:
-        skills_similarity = 0
+        overall_skills_similarity = 0
+    print("SKills Matched:",overall_skills_similarity)
     print("Completed Comparing resume_skills and jd_skills")
-    
-
-
-    ########   compare resume_education and jd_education
-    print("Comparing resume_education and jd_education")
-    overall_education_similarity= 0
-    cos_education_matching = 0
-    education_similarity = 0
-    if resume_education and job_description_education:
-
-        new_resume_education = []
-        count = 0
-        job_description_education_text = ""
-        resume_education_text = ""
-        if resume_education:
-            for educations in resume_education:
-                cleaned_item = clean_text(educations)
-                resume_education_text += cleaned_item + " "   
-                search_query = f"{educations} in technology "
+    ##########################################
+    # compare resume_experience and jd_experience
+    print("Comparing resume_experience and jd_experience")
+    new_resume_experience = []
+    experience_similarity = 0
+    cos_experience_matching = 0
+    if resume_experience_list and jd_experience_list:
+        job_description_experience_text = ""
+        resume_experience_text = ""
+        resume_experience_text2 = ""
+        if resume_experience_list:
+            for experience in resume_experience_list: 
+                cleaned_item = clean_text(experience)
+                resume_experience_text += cleaned_item + " " 
+                search_query = f"{experience}"
                 results = get_search_results(search_query)
                 if results:
-                    new_resume_education.append(results) 
+                    new_resume_experience.append(results) 
                 else:
                     print("No matching articles found")
-
-        if job_description_education:
-            for educations in job_description_education:
-                cleaned_item = clean_text(educations)
-                job_description_education_text += cleaned_item + " "
-                for resume_education in new_resume_education:
-                    if educations in resume_education:
-                        count += 1
-                        break
-
-            education_similarity =1 - ((len(job_description_education) - count)/ len(job_description_education))
-            education_similarity = education_similarity * 0.3
-
-            job_description_education_text = job_description_education_text.strip()
-            resume_education_text = resume_education_text.strip()
-            cos_education_matching = CosineMatching(resume_education_text,job_description_education_text)
-            cos_education_matching = cos_education_matching *0.1
-            overall_education_similarity = overall_education_similarity + education_similarity + cos_education_matching
-            # print("EDUCATION Matched:",overall_education_similarity)
-
-        else:
-            education_similarity = 0
-            # print("EDUCATION Matched", education_similarity)
+                for new_experience in new_resume_experience:
+                    cleaned_item = clean_text(new_experience)
+                    resume_experience_text2 += cleaned_item + " "
+        
+        if jd_experience_list:
+            for experience in jd_experience_list: 
+                cleaned_item = clean_text(experience)
+                job_description_experience_text += cleaned_item + " " 
+        
+        resume_experience_text = resume_experience_text.strip()
+        job_description_experience_text = job_description_experience_text.strip()
+        cos_experience_matching1 = CosineMatching(resume_experience_text,job_description_experience_text)
+        cos_experience_matching2 = CosineMatching(resume_experience_text2,job_description_experience_text)
+        cos_experience_matching = cos_experience_matching1 + cos_experience_matching2
+        if(cos_experience_matching > 1):
+            cos_experience_matching = 1
+        cos_experience_matching = cos_experience_matching * 0.6
+        experience_similarity += cos_experience_matching
     else:
-        education_similarity = 0
-    print("Completed Comparing resume_education and jd_education")
+        experience_similarity = 0
+    print("experience_matching:",experience_similarity)
     
 
-
-    #### Certification Similarity
-    # if resume_education and job_description_education:
-    print("Comparing Certification")
-    job_description_skill_education_experience_text = ""
-    resume_certification_text = ""
-    certification_matching = 0 
-
-    if resume_certification:
-        for item in resume_certification:
-            cleaned_item = clean_text(item)
-            resume_certification_text += cleaned_item + " "
-
-    if job_description_skills:
-        for item in job_description_skills:
-            cleaned_item = clean_text(item)
-            job_description_skill_education_experience_text += cleaned_item + " "
-    
-    if jd_experience_list:
-        for item in jd_experience_list:
-            cleaned_item = clean_text(item)
-            job_description_skill_education_experience_text += cleaned_item + " "
-    
-    if job_description_education:
-        for item in job_description_education:
-            cleaned_item = clean_text(item)
-            job_description_skill_education_experience_text += cleaned_item + " "
-    
-    
-    job_description_skill_education_experience_text = job_description_skill_education_experience_text.strip()
-    resume_certification_text = resume_certification_text.strip()
-
-    certification_matching = CosineMatching(resume_certification_text,job_description_skill_education_experience_text)
-    certification_matching = certification_matching * 0.2
-    # print("Certification_matching:",certification_matching)
-    print("Completed Comparing Certification")
-
-
-    ##########################################
     finalsimilarity = 0
     finalsimilarity = CosineMatching(resume_text_only ,text_of_jd)
     finalsimilarity = finalsimilarity * 0.3
-
-    matching=(jdpost_similarity + experience_similarity+  overall_skills_similarity + overall_education_similarity +  certification_matching+finalsimilarity)*100
+    matching = 0
+    matching=(jdpost_similarity + experience_similarity+ overall_skills_similarity)*100
+    if (matching <= 0.3):
+        final_matching= (jdpost_similarity + experience_similarity+ overall_skills_similarity+finalsimilarity)*100
+        matching += final_matching
     matching = round(matching,2)
     print("Overall Similarity between resume and jd is ",matching )
-
     return matching;
