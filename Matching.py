@@ -157,13 +157,19 @@ def Matching(user_id,job_id):
         if resume_skills:
             for skills in resume_skills: 
                 cleaned_item = clean_text(skills)
-                resume_skills_text += cleaned_item + " "  
-                search_query = f"{skills}"
-                results = get_search_results(search_query)
-                if results:
-                    new_resume_skills.append(results) 
-                else:
-                    print("No matching articles found")
+                resume_skills_text += cleaned_item + " " 
+                search_query = f"{cleaned_item}"
+                try:     
+                    results = get_search_results(search_query)
+                    if results:
+                        new_resume_skills.append(results) 
+                    else:
+                        print("No matching articles found")
+                except ConnectionError as e:
+                    print(f"Connection Error: {e}")
+                except Exception as e:
+                    print(f"An error occurred: {e}")
+                    
                 for new_skills in new_resume_skills:
                     cleaned_item = clean_text(new_skills)
                     resume_skills_text2 += cleaned_item + " " 
@@ -175,6 +181,7 @@ def Matching(user_id,job_id):
 
             job_description_skills_text = job_description_skills_text.strip()
             resume_skills_text = resume_skills_text.strip()
+            resume_skills_text2 = resume_skills_text.strip()
             cos_skills_matching1 = CosineMatching(resume_skills_text,job_description_skills_text)
             cos_skills_matching2 = CosineMatching(resume_skills_text2,job_description_skills_text)
             cos_skills_matching = cos_skills_matching1 + cos_skills_matching2
@@ -200,12 +207,18 @@ def Matching(user_id,job_id):
             for experience in resume_experience_list: 
                 cleaned_item = clean_text(experience)
                 resume_experience_text += cleaned_item + " " 
-                search_query = f"{experience}"
-                results = get_search_results(search_query)
-                if results:
-                    new_resume_experience.append(results) 
-                else:
-                    print("No matching articles found")
+                search_query = f"{cleaned_item}"
+                try:
+                    results = get_search_results(search_query)
+                    if results:
+                        new_resume_experience.append(results) 
+                    else:
+                        print("No matching articles found")
+                except ConnectionError as e:
+                    print(f"Connection Error: {e}")
+                except Exception as e:
+                    print(f"An error occurred: {e}")
+
                 for new_experience in new_resume_experience:
                     cleaned_item = clean_text(new_experience)
                     resume_experience_text2 += cleaned_item + " "
@@ -216,6 +229,7 @@ def Matching(user_id,job_id):
                 job_description_experience_text += cleaned_item + " " 
         
         resume_experience_text = resume_experience_text.strip()
+        resume_experience_text2 = resume_experience_text2.strip()
         job_description_experience_text = job_description_experience_text.strip()
         cos_experience_matching1 = CosineMatching(resume_experience_text,job_description_experience_text)
         cos_experience_matching2 = CosineMatching(resume_experience_text2,job_description_experience_text)
