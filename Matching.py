@@ -1,7 +1,7 @@
 import spacy, fitz,io
 from database import mongo
 from bson.objectid import ObjectId
-from MediaWiki import get_search_results
+from MediaWiki import get_search_results,get_summaries_for_queries
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
 import nltk
@@ -153,26 +153,39 @@ def Matching(user_id,job_id):
         job_description_skills_text = ""
         resume_skills_text = ""
         resume_skills_text2 = ""
+        cleaned_resume_skills_list = []
 
         if resume_skills:
             for skills in resume_skills: 
                 cleaned_item = clean_text(skills)
+                cleaned_resume_skills_list.append(cleaned_item)
                 resume_skills_text += cleaned_item + " " 
-                search_query = f"{cleaned_item}"
-                try:     
-                    results = get_search_results(search_query)
-                    if results:
-                        new_resume_skills.append(results) 
-                    else:
-                        print("No matching articles found")
-                except ConnectionError as e:
-                    print(f"Connection Error: {e}")
-                except Exception as e:
-                    print(f"An error occurred: {e}")
+                # search_query = f"{cleaned_item}"
+                # try:     
+                #     results = get_search_results(search_query)
+                #     if results:
+                #         new_resume_skills.append(results) 
+                #     else:
+                #         print("No matching articles found")
+                # except ConnectionError as e:
+                #     print(f"Connection Error: {e}")
+                # except Exception as e:
+                #     print(f"An error occurred: {e}")
                     
-                for new_skills in new_resume_skills:
-                    cleaned_item = clean_text(new_skills)
-                    resume_skills_text2 += cleaned_item + " " 
+                # for new_skills in new_resume_skills:
+                #     cleaned_item = clean_text(new_skills)
+                #     resume_skills_text2 += cleaned_item + " " 
+            search_queries = cleaned_resume_skills_list
+            try:
+                new_resume_skills = get_summaries_for_queries(search_queries)
+            except ConnectionError as e:
+                print(f"Connection Error: {e}")
+            except Exception as e:
+                print(f"An error occurred: {e}")
+
+            for new_skills in new_resume_skills:
+                cleaned_item = clean_text(new_experience)
+                resume_skills_text2 += cleaned_item + " "
 
         if job_description_skills:
             for skill in job_description_skills:
@@ -199,6 +212,7 @@ def Matching(user_id,job_id):
     new_resume_experience = []
     experience_similarity = 0
     cos_experience_matching = 0
+    cleaned_resume_experience_list = []
     if resume_experience_list and jd_experience_list:
         job_description_experience_text = ""
         resume_experience_text = ""
@@ -206,22 +220,34 @@ def Matching(user_id,job_id):
         if resume_experience_list:
             for experience in resume_experience_list: 
                 cleaned_item = clean_text(experience)
+                cleaned_resume_experience_list.append(cleaned_item)
                 resume_experience_text += cleaned_item + " " 
-                search_query = f"{cleaned_item}"
-                try:
-                    results = get_search_results(search_query)
-                    if results:
-                        new_resume_experience.append(results) 
-                    else:
-                        print("No matching articles found")
-                except ConnectionError as e:
-                    print(f"Connection Error: {e}")
-                except Exception as e:
-                    print(f"An error occurred: {e}")
+                # search_query = f"{cleaned_item}"
+                # try:
+                #     results = get_search_results(search_query)
+                #     if results:
+                #         new_resume_experience.append(results) 
+                #     else:
+                #         print("No matching articles found")
+                # except ConnectionError as e:
+                #     print(f"Connection Error: {e}")
+                # except Exception as e:
+                #     print(f"An error occurred: {e}")
 
-                for new_experience in new_resume_experience:
-                    cleaned_item = clean_text(new_experience)
-                    resume_experience_text2 += cleaned_item + " "
+                # for new_experience in new_resume_experience:
+                #     cleaned_item = clean_text(new_experience)
+                #     resume_experience_text2 += cleaned_item + " "
+            search_queries = cleaned_resume_experience_list
+            try:
+                new_resume_experience = get_summaries_for_queries(search_queries)
+            except ConnectionError as e:
+                print(f"Connection Error: {e}")
+            except Exception as e:
+                print(f"An error occurred: {e}")
+
+            for new_experience in new_resume_experience:
+                cleaned_item = clean_text(new_experience)
+                resume_experience_text2 += cleaned_item + " "
         
         if jd_experience_list:
             for experience in jd_experience_list: 

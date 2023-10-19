@@ -6,16 +6,23 @@ def get_search_results(search_query):
     data = response.json()
     results = data.get("query", {}).get("search", [])
     if len(results) > 0:
-        title = results[0].get("title", "")
-        if title:
-            return get_summary(title)
+        titles = "|".join(result.get("title", "") for result in results)
+        if titles:
+            return get_summary(titles)
     return None
 
-def get_summary(title):
-    endpoint = f"https://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exsentences=5&explaintext=&origin=*&titles={title}"
+def get_summary(titles):
+    endpoint = f"https://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exsentences=5&explaintext=&origin=*&titles={titles}"
     response = requests.get(endpoint)
     data = response.json()
     results = data.get("query", {}).get("pages", {})
-    for result in results.values():
-        return result.get("extract", "")
-    return None
+    summaries = [result.get("extract", "") for result in results.values()]
+    return summaries
+
+def get_summaries_for_queries(search_queries):
+    summaries = []
+    for search_query in search_queries:
+        results = get_search_results(search_query)
+        if results:
+            summaries.append(results[0])  # Get the first summary for each query
+    return summaries
