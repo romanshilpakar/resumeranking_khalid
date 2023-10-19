@@ -184,7 +184,7 @@ def Matching(user_id,job_id):
                 print(f"An error occurred: {e}")
 
             for new_skills in new_resume_skills:
-                cleaned_item = clean_text(new_experience)
+                cleaned_item = clean_text(new_skills)
                 resume_skills_text2 += cleaned_item + " "
 
         if job_description_skills:
