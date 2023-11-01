@@ -1,7 +1,7 @@
 import spacy, fitz,io
 from database import mongo
 from bson.objectid import ObjectId
-from MediaWiki import get_search_results,get_summaries_for_queries
+from MediaWiki import get_summaries_for_queries
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
 import nltk
@@ -162,7 +162,7 @@ def Matching(user_id,job_id):
                 resume_skills_text += cleaned_item + " " 
                 # search_query = f"{cleaned_item}"
                 # try:     
-                #     results = get_search_results(search_query)
+                #     results = search_query)
                 #     if results:
                 #         new_resume_skills.append(results) 
                 #     else:
@@ -224,7 +224,7 @@ def Matching(user_id,job_id):
                 resume_experience_text += cleaned_item + " " 
                 # search_query = f"{cleaned_item}"
                 # try:
-                #     results = get_search_results(search_query)
+                #     results = search_query)
                 #     if results:
                 #         new_resume_experience.append(results) 
                 #     else:
