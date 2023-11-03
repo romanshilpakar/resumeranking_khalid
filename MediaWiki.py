@@ -28,11 +28,33 @@
 #     return summaries
 
 
+# import requests
+
+# def get_summary(search_query):
+#     endpoint = f"https://en.wikipedia.org/api/rest_v1/page/summary/{search_query}"
+#     response = requests.get(endpoint)
+#     data = response.json()
+#     summary = data.get("extract", "")
+#     return summary
+
+# def get_summaries_for_queries(search_queries):
+#     summaries = []
+#     for search_query in search_queries:
+#         summary = get_summary(search_query)
+#         if summary:
+#             summaries.append(summary)
+#     return summaries
+
+
 import requests
+
+# Replace these with your own credentials
+api_username = "roman"
+api_password = "Iamroman2056$"
 
 def get_summary(search_query):
     endpoint = f"https://en.wikipedia.org/api/rest_v1/page/summary/{search_query}"
-    response = requests.get(endpoint)
+    response = requests.get(endpoint, auth=(api_username, api_password))
     data = response.json()
     summary = data.get("extract", "")
     return summary
@@ -44,3 +66,4 @@ def get_summaries_for_queries(search_queries):
         if summary:
             summaries.append(summary)
     return summaries
+
