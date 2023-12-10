@@ -6,3 +6,4 @@ scikit-learn>=1.2.0
 spacy>=3.5.0
 spacy-transformers>=1.2.2
 nltk>=3.8.1
+sumy>=0.11.0

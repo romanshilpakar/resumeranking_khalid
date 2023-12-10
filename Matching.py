@@ -160,21 +160,6 @@ def Matching(user_id,job_id):
                 cleaned_item = clean_text(skills)
                 cleaned_resume_skills_list.append(cleaned_item)
                 resume_skills_text += cleaned_item + " " 
-                # search_query = f"{cleaned_item}"
-                # try:     
-                #     results = search_query)
-                #     if results:
-                #         new_resume_skills.append(results) 
-                #     else:
-                #         print("No matching articles found")
-                # except ConnectionError as e:
-                #     print(f"Connection Error: {e}")
-                # except Exception as e:
-                #     print(f"An error occurred: {e}")
-                    
-                # for new_skills in new_resume_skills:
-                #     cleaned_item = clean_text(new_skills)
-                #     resume_skills_text2 += cleaned_item + " " 
             search_queries = cleaned_resume_skills_list
             try:
                 new_resume_skills = get_summaries_for_queries(search_queries)
@@ -222,21 +207,6 @@ def Matching(user_id,job_id):
                 cleaned_item = clean_text(experience)
                 cleaned_resume_experience_list.append(cleaned_item)
                 resume_experience_text += cleaned_item + " " 
-                # search_query = f"{cleaned_item}"
-                # try:
-                #     results = search_query)
-                #     if results:
-                #         new_resume_experience.append(results) 
-                #     else:
-                #         print("No matching articles found")
-                # except ConnectionError as e:
-                #     print(f"Connection Error: {e}")
-                # except Exception as e:
-                #     print(f"An error occurred: {e}")
-
-                # for new_experience in new_resume_experience:
-                #     cleaned_item = clean_text(new_experience)
-                #     resume_experience_text2 += cleaned_item + " "
             search_queries = cleaned_resume_experience_list
             try:
                 new_resume_experience = get_summaries_for_queries(search_queries)
